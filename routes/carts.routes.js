@@ -49,15 +49,37 @@ router.post("/:cid/product/:pid",async(req,res)=>{
 //ruta para actualizar un carrito
 router.put("/:cid/product/:pid",async(req,res)=>{
     try {
-        //const {price}= req.body;
-        const modCart = await cartsService.updateCart(req.params.cid , req.params.pid);
-        res.json({status:"success",data:modCart});
+        const { quantity } = req.body;
+
+        if (!quantity || isNaN(quantity)) {
+          throw new Error("La cantidad debe ser un número válido");
+        }
+    
+        const modCart = await cartsService.updateCart(
+          req.params.cid,
+          req.params.pid,
+          parseInt(quantity)
+        );
+    
+        res.json({ status: "success", data: modCart });
     } catch (error) {
         console.log(error.message);
         res.status(400).json({status:"error", message:error.message});
     }
 
 });
+
+//ruta para eliminar producto por ID del carrito
+router.delete("/:cid/product/:pid",async(req,res)=>{
+    try {
+        const resultId = await cartsService.deleteProduct(req.params.cid , req.params.pid);
+        res.json({status:"success",data:resultId.message});
+    } catch (error) {
+        console.log(error.message);
+        res.status(400).json({status:"error", message:error.message});
+    }
+});
+
 
 //ruta para eliminar un carrito
 router.delete("/:cid",async(req,res)=>{

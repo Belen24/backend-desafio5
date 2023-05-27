@@ -43,7 +43,7 @@ export class CartsMongo{
         }
     };
 
-    async deleteProduct(cartId){
+    async deleteCart(cartId){
         try {
             await this.model.findByIdAndDelete(cartId);
             return {message: "Carrito eliminado"};
@@ -53,13 +53,50 @@ export class CartsMongo{
     
     };
 
-    async updateCart(cartId, cart){
+    async deleteProduct(cartId, productId){
         try {
-            const data = await this.model.findByIdAndUpdate(cartId,cart,{new:true});
-            if(!data){
-                throw new Error("el carrito no existe")
+            const cart = await this.model.findById(cartId);
+
+            if (!cart){
+                throw new Error ("El carrito no existe");
             }
-            return data;
+
+            const productIndex = cart.products.findIndex(
+                (product) => product._id.toString() === productId.toString()
+              );
+              if (productIndex === -1) {
+                throw new Error("El producto no existe en el carrito");
+              }
+          
+              cart.products.splice(productIndex, 1);
+              await cart.save();
+          
+              return { message: "Producto eliminado del carrito" };
+
+        } catch (error) {
+            throw new Error(`Error al eliminar el carrito ${error.message}`);
+        }
+    
+    };
+
+    async updateCart(cartId, productId, quantity){
+        try {
+            const cart = await this.model.findById(cartId);
+            if (!cart) {
+              throw new Error("El carrito no existe");
+            }
+        
+            const product = cart.products.find(
+              (product) => product._id.toString() === productId.toString()
+            );
+            if (!product) {
+              throw new Error("El producto no existe en el carrito");
+            }
+        
+            product.quantity = quantity;
+            await cart.save();
+        
+            return cart;
         } catch (error) {
             throw new Error(`Error al actualizar el carrito ${error.message}`);
         }
